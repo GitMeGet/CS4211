@@ -1,0 +1,36 @@
+Client Init
+
+WAC sends connecting request
+
+1a) CM status = not idle
+- CM sends WAC 'connection refused'
+- WAC status remains disconnected
+
+1b) CM status = idle
+- CM status = pre-init
+- WAC status = pre-init [set by CM]
+- CM disable WCP (so that no manual updates can be made by the user during the process of client initialization)
+
+CM status = pre-init
+2) CM sends WAC 'update weather info'
+- CM status = init
+- WAC status = init [set by CM]
+
+3a) WAC sends CM 'update success'
+- CM sends WAC 'use weather info'
+- CM status = post-init
+- WAC status = post-init [set by CM]
+
+3b) WAC sends CM 'update failed'
+- CM disconnects WAC
+- CM status = idle
+
+4a) WAC sends CM 'use new weather success' [initialization complete]
+- CM status = idle
+- WAC status = idle [set by CM]
+- CM re-enable WCP (so that manual weather update is allowed again)
+
+4b) WAC sends CM 'use new weather failed'
+- CM disconnects WAC
+- CM re-enable WCP
+- CM status = idle
