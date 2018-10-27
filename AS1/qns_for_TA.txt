@@ -1,0 +1,29 @@
+1) running SPIN verification shows no errors
+- assume claim is correct
+- as long as no errors after verifying ltl -> model correct?
+
+*** do random sim to ensure behaviour unchanged
+- i had previously removed non-deterministic behaviour
+
+1) non-progress cycle verification error [i don't have either labels in my pml]
+- non-progress vs acceptance? 
+-- progress label states the requirement that the labeled global state must be visited infinitely often in any infinite system execution. Any violation of this requirement can be reported by the verifier as a non-progress cycle.
+--- from q1.pml.trail, where to see which statement is not executing?
+-- acceptance label: Spin generated verifiers can prove either the absence or presence of infinite runs that traverse at least one accept state in the global system state space infinitely often
+
+2) can i use a simpler model?
+
+2) can't make sense of verification error trail replay
+
+2) current LTL doesn't specifically check for deadlock
+- is it sufficient?
+-- use remote references
+
+*** use 3 separate incoming processes
+- done
+
+*** process assemble: 2nd atomic statement blocks and then process hangs
+- done, use semaphores as guard before executing atomic
+
+
+
