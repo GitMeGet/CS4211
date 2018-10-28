@@ -1,36 +1,91 @@
 Client Init
 
-WAC sends connecting request
+1) WAC sends CM 'connecting request' [disconnected WAC can establish a connection]
 
-1a) CM status = not idle
+2a) CM status = not idle
 - CM sends WAC 'connection refused'
 - WAC status remains disconnected
 
-1b) CM status = idle
+2b) CM status = idle
 - CM status = pre-init
-- WAC status = pre-init [set by CM]
+- WAC status = pre-init [set by CM] [WAC connected]
 - CM disable WCP (so that no manual updates can be made by the user during the process of client initialization)
 
 CM status = pre-init
-2) CM sends WAC 'update weather info'
+3) CM sends WAC 'get new weather info'
 - CM status = init
 - WAC status = init [set by CM]
 
-3a) WAC sends CM 'update success'
+4a) WAC sends CM 'get new weather info success'
 - CM sends WAC 'use weather info'
 - CM status = post-init
 - WAC status = post-init [set by CM]
 
-3b) WAC sends CM 'update failed'
-- CM disconnects WAC
+4b) WAC sends CM 'get new weather info failed'
+- CM disconnects WAC [WAC status = idle?]
 - CM status = idle
 
-4a) WAC sends CM 'use new weather success' [initialization complete]
+5a) WAC sends CM 'use new weather info success' [initialization complete]
 - CM status = idle
 - WAC status = idle [set by CM]
 - CM re-enable WCP (so that manual weather update is allowed again)
 
-4b) WAC sends CM 'use new weather failed'
-- CM disconnects WAC
+5b) WAC sends CM 'use new weather info failed'
+- CM disconnects WAC [WAC status = idle?]
 - CM re-enable WCP
 - CM status = idle
+
+Weather Update
+
+1) if WCP enabled, user can click WCP button to manually update weather info 
+- WCP sends CM 'update'
+
+2) CM status = idle
+- CM status = pre-updating
+- connected WAC status = pre-updating [set by CM]
+- CM disable WCP from any further updating requests before the completion of current update
+
+3) CM status = pre-updating
+- CM sends all connected WAC 'get new weather info'
+- CM status = updating
+- connected WAC status = updating [set by CM]
+
+4a) ALL WAC sends CM 'get new weather info success'
+- CM sends all connected WAC 'use new weather info'
+- CM status = post-updating
+- connected WAC status = post-updating [set by CM]
+
+4b) if any WAC sends CM 'get new weather info failed'
+- CM sends all connected WAC 'use old weather info'
+- CM status = post-reverting
+- connected WAC status = post-reverting [set by CM]
+
+CM status = post updating
+5a) ALL WAC sends CM 'use new weather info success' [updating completed]
+- CM status = idle
+- connected WAC status = idle [set by CM]
+- CM re-enable WCP
+
+5b) if any WAC sends CM 'use new weather info failed'
+- CM disconnects all connected WAC
+- CM re-enable WCP
+- CM status = idle
+
+CM status = post-reverting 
+6a) ALL WAC sends CM 'use old weather info success' [reverting completed]
+- CM status = idle
+- connected WAC status = idle [set by CM]
+- CM re-enable WCP
+
+6b) if any WAC sends CM 'use old weather info failed'
+- CM disconnects all connected WAC
+- CM re-enable WCP
+- CM status = idle
+
+
+
+
+
+
+
+
