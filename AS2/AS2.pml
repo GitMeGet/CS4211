@@ -1,80 +1,109 @@
-#define num_WAC = 5
+#define num_WAC 5
 
-CM_out = { conn_succ, conn_fail, get_new_winfo, st_init, use_new_winfo, st_post-init, disconn, disable_WCP, enable_WCP };
-CM_in = { conn_req, get_new_winfo_succ, get_new_winfo_fail, use_new_winfo_succ, use_new_winfo_fail, update_CM };
+mtype = { conn_succ, conn_fail, get_new_winfo, st_init, use_new_winfo, st_post_init, disconn, disable_WCP, enable_WCP, conn_req, get_new_winfo_succ, get_new_winfo_fail, use_new_winfo_succ, use_new_winfo_fail, update_CM };
 
-chan CM_buffer[1] = [5] of { CM_in, byte WAC_id };
-chan WAC_buffer[num_WAC] = [1] of { CM_out };
-chan WCP_buffer[1] = [1] of { CM_out };
+chan CM_buffer = [5] of { mtype, byte };
+chan WAC_buffer[num_WAC] = [1] of { mtype };
+chan WCP_buffer = [1] of { mtype };
 
 proctype CM()
 {
-// keep track of all connected WAC
-            byte id;
+            // keep track of all connected WAC
 
-idle:       if
-            ::  CM_buffer??conn_req, id;
-                WAC_buffer[id]!conn_succ;
+            mtype msg;
+            byte WCP_id;
+
+idle:       CM_buffer?msg, WCP_id;
+            if
+            ::  msg == conn_req;
+                WAC_buffer[WCP_id]!conn_succ;
                 WCP_buffer!disable_WCP;
-                goto: pre-init;
-            ::  CM_buffer??update_CM;
-            fi
+                goto pre_init
+            ::  msg == update_CM;
+            fi;
 
-pre-init:   WAC_buffer[id]!get_new_winfo;
+pre_init:   WAC_buffer[id]!get_new_winfo;
             WAC_buffer[id]!st_init;
-            goto: init
+            goto init
 
-init:       
-            
+init:       if
+            ::  CM_buffer??get_new_winfo_succ, id;
+                WAC_buffer[id]!use_new_winfo;
+                WAC_buffer[id]!st_post_init;
+                goto post_init
+            ::  CM_buffer??get_new_winfo_fail, id;
+                WAC_buffer[id]!disconn;
+                goto idle  
+            fi;
+
+post_init:  if
+            ::  CM_buffer??use_new_winfo_succ, id;
+                WAC_buffer[id]!disconn;
+                WCP_buffer!enable_WCP;
+                goto idle
+            ::  CM_buffer??use_new_winfo_fail, id;
+                WAC_buffer[id]!disconn;
+                WCP_buffer!enable_WCP;
+                goto idle             
+            fi;
 }
 
 proctype WCP()
 {
+
+enabled:    if
+            ::  WCP_buffer??disable_WCP;
+                goto   disabled
+            ::  CM_buffer!update_CM;
+            ::  //do nothing
+            fi;
+
+disabled:   WCP_buffer??enable_WCP;
+            goto   enabled
 
 }
 
 proctype WAC(byte id)
 {
             mtype msg;
+            byte id;
 
 idle:       do 
-            ::  goto: idle
+            ::  goto idle
             ::  CM_buffer!conn_req, id
                 if  // execution blocks if none of the guards are executable
                 ::  WAC_buffer??conn_succ 
-                    goto: pre-init
+                    goto pre_init
                 ::  WAC_buffer??conn_fail
-                    goto: idle
-                fi
-            od
+                    goto idle
+                fi;
+            od;
 
-pre-init:   WAC_buffer??get_new_winfo
+pre_init:   WAC_buffer??get_new_winfo
             WAC_buffer??st_init
-            goto: init
+            goto init
 
 init:       ::  CM_buffer!get_new_winfo_succ, id
                 WAC_buffer??use_new_winfo
-                WAC_buffer??st_post-init
-                goto: post-init
+                WAC_buffer??st_post_init
+                goto post_init
             ::  CM_buffer!get_new_winfo_fail, id
                 WAC_buffer??disconn
-                goto: idle
+                goto idle
 
-post-init:  ::  CM_buffer!use_new_winfo_succ, id
+post_init:  ::  CM_buffer!use_new_winfo_succ, id
                 WAC_buffer??st_idle
-                goto: idle
+                goto idle
             ::  CM_buffer!use_new_winfo_fail, id
                 WAC_buffer??disconn
-                goto: idle
+                goto idle
 }
 
 init {
     atomic {
-        
+        run CM();
+        run WCP();
+        run WAC(0);
     }
 }
-
-
-
-
 

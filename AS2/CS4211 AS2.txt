@@ -16,6 +16,7 @@ CM status = pre-init
 - CM status = init
 - WAC status = init [set by CM]
 
+CM status = init
 4a) WAC sends CM 'get new weather info success'
 - CM sends WAC 'use weather info'
 - CM status = post-init
@@ -25,13 +26,14 @@ CM status = pre-init
 - CM disconnects WAC [WAC status = idle?]
 - CM status = idle
 
+CM status = post_init
 5a) WAC sends CM 'use new weather info success' [initialization complete]
-- CM status = idle
+- CM status = idle [SHOULD BE DIFFERENT THAN DISCONNECT]
 - WAC status = idle [set by CM]
 - CM re-enable WCP (so that manual weather update is allowed again)
 
 5b) WAC sends CM 'use new weather info failed'
-- CM disconnects WAC [WAC status = idle?]
+- CM disconnects WAC [WAC status = idle + remove from CM list of connected device]
 - CM re-enable WCP
 - CM status = idle
 
@@ -81,11 +83,6 @@ CM status = post-reverting
 - CM disconnects all connected WAC
 - CM re-enable WCP
 - CM status = idle
-
-
-
-
-
 
 
 
