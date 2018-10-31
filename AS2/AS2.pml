@@ -1,4 +1,4 @@
-#define num_WAC 5
+#define num_WAC 3
 
 mtype = { conn_succ, conn_fail, get_new_winfo, goto_init, use_new_winfo, goto_post_init, goto_idle, disable_WCP, enable_WCP, conn_req, get_new_winfo_succ, get_new_winfo_fail, use_new_winfo_succ, use_new_winfo_fail, update_CM };
 
@@ -107,7 +107,10 @@ init {
     atomic {
         run CM();
         run WCP();
-        run WAC(0);
+        int i;
+        for (i : 0 .. num_WAC-1) {
+            run WAC(i);
+        }
     }
 }
 
