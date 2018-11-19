@@ -73,9 +73,6 @@ s_post_init:    if
                 goto s_idle
 
 s_pre_updating: send_to_connected(get_new_winfo);
-                
-                // TODO: connected WAC status = updating [set by CM]
-
                 goto s_updating
 
 s_updating:     // wait for all connected WAC to respond
@@ -118,10 +115,6 @@ s_post_updating:    succ_flag = true;
                         WCP_buffer!enable_WCP;
                         goto s_idle;
                     ::  else;                    
-                        for (i : 0 .. num_connected-1) {
-                            WAC_id = connected_WAC[i];
-                            // set status
-                        }
                         WCP_buffer!enable_WCP;
                         goto s_idle
                     fi;
@@ -144,10 +137,6 @@ s_post_reverting:   succ_flag = true;
                         WCP_buffer!enable_WCP;
                         goto s_idle;
                     ::  else;
-                        for (i : 0 .. num_connected-1) {
-                            WAC_id = connected_WAC[i];
-                            // set status
-                        }
                         WCP_buffer!enable_WCP;
                         goto s_idle
                     fi;
