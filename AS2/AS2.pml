@@ -8,14 +8,14 @@ chan WAC_buffer_out[num_WAC] = [1] of { mtype };
 chan WCP_buffer = [1] of { mtype };
 
 inline send_to_connected(msg) {
-    for (i : 0 .. num_connected) {
+    for (i : 0 .. num_connected-1) {
         WAC_id = connected_WAC[i];
         WAC_buffer_in[WAC_id]!msg;
     }   
 }
 
 inline disconn_all_WAC() {
-    for (i : 0 .. num_connected) {
+    for (i : 0 .. num_connected-1) {
         WAC_buffer_in[WAC_id]!disconn;
         connected_WAC[i] = -1;
         num_connected = 0;
