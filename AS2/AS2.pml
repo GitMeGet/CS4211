@@ -251,5 +251,5 @@ init {
     }
 }
 
-// LTL: if user click WCP button to update_winfo, connected WAC reply get_new_winfo_succ
+
 
