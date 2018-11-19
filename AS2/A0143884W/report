@@ -1,4 +1,10 @@
 Please include your particulars (name, matriculation number and NUS email ad-
-dress), assumptions you made in system modeling (if any). Clearly, describe the undesirable
-behaviour in the specification and the LTL property you used to verify your Promela model. Also
-give a clear interpretation of the counterexample obtained from SPIN
+dress), assumptions you made in system modeling (if any). Clearly, describe the undesirable behaviour in the specification and the LTL property you used to verify your Promela model. Also give a clear interpretation of the counterexample obtained from SPIN
+
+The key property of this system is to be able to propogate the latest weather update to all connected clients via the communication manager. Define the key property in Linear-time temporal logic (LTL) (1 mark)
+
+3. Show that there exists a deadlock and provide a clear interpretation of the counter-example obtained from SPIN. Any additional problems you find in the protocol will of course distinguish your answer and earn more credit(3 marks)
+
+issue 1
+CM msg is sent to wrong WAC_id during this disruption
+- drop or buffer conn_req from disconnected WACs while another WAC is going through the Client Initialization (trying to connect to CM)?

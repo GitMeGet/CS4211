@@ -21,6 +21,8 @@ inline disconn_all_WAC() {
     }
 }
 
+// Initially, CM idle status, WCP enabled, all WACs disconnected
+
 proctype CM()
 {
                 byte num_connected;
@@ -116,7 +118,6 @@ s_post_reverting:   for (i : 0 .. num_connected) {
                     }
                     WCP_buffer!enable_WCP;
                     goto s_idle
-
 }
 
 proctype WCP()
