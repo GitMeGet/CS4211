@@ -40,9 +40,14 @@ s_idle:         CM_buffer?msg, WAC_id;
                     WCP_buffer!disable_WCP;
                     goto s_pre_init
                 ::  msg == update_CM;
-                    send_to_connected(wupdate);
-                    WCP_buffer!disable_WCP;
-                    goto s_pre_updating
+                    if 
+                    ::  num_connected == 0;
+                        goto s_idle
+                    ::  else;
+                        send_to_connected(wupdate);
+                        WCP_buffer!disable_WCP;
+                        goto s_pre_updating
+                    fi;
                 fi;
 
 s_pre_init:     WAC_buffer_in[WAC_id]!get_new_winfo;
