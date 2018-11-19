@@ -126,7 +126,6 @@ s_post_reverting:   for (i : 0 .. num_connected) {
 
 proctype WCP()
 {
-    bool update_CM_sent = false;
     bool WCP_enabled = true;
 
     do
@@ -137,13 +136,12 @@ proctype WCP()
         WCP_enabled = false;
 
     ::  WCP_enabled == true;
-        // TODO: add delay instead of using flag
-        if 
-        ::  update_CM_sent == false;
-            CM_buffer!update_CM, -1;
-            update_CM_sent = true;
+        if
+        ::  // check if buffer already contains the msg
+            CM_buffer?[update_CM, 255];
+            CM_buffer!update_CM, 255;
         ::  else;
-            skip
+            skip;
         fi;
     od;
 }
