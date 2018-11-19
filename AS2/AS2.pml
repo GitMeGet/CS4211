@@ -171,16 +171,19 @@ s_pre_init:     WAC_buffer_in[id]??get_new_winfo;
                 goto s_init
 
 s_init:         if
-                ::  WAC_buffer_out[id]!get_new_winfo_succ
-                    WAC_buffer_in[id]??use_new_winfo
-                    goto s_post_init
-                ::  WAC_buffer_out[id]!get_new_winfo_fail
+                ::  WAC_buffer_out[id]!get_new_winfo_succ;
+                    WAC_buffer_in[id]??use_new_winfo;
+                    goto s_post_init;
+                ::  WAC_buffer_out[id]!get_new_winfo_fail;
+                    conn_req_ready = true;
                     goto s_idle
                 fi;
 
 s_post_init:    if
                 ::  WAC_buffer_out[id]!use_new_winfo_succ
+                    connected = true;
                 ::  WAC_buffer_out[id]!use_new_winfo_fail
+                    conn_req_ready = true;
                 fi;
                 goto s_idle
 
@@ -199,6 +202,7 @@ s_post_updating:    WAC_buffer_in[id]??use_new_winfo;
                     ::  CM_buffer!use_new_winfo_fail, id;
                         WAC_buffer_in[id]??disconn;
                         connected = false;
+                        conn_req_ready = true;
                         goto s_idle
                     fi;
 
@@ -209,6 +213,7 @@ s_post_reverting:   WAC_buffer_in[id]??use_old_winfo;
                     ::  CM_buffer!use_old_winfo_fail, id;
                         WAC_buffer_in[id]??disconn;
                         connected = false;
+                        conn_req_ready = true;
                         goto s_idle
                     fi;
 }
