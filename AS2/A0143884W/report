@@ -1,0 +1,4 @@
+Please include your particulars (name, matriculation number and NUS email ad-
+dress), assumptions you made in system modeling (if any). Clearly, describe the undesirable
+behaviour in the specification and the LTL property you used to verify your Promela model. Also
+give a clear interpretation of the counterexample obtained from SPIN
