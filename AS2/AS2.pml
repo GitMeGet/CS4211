@@ -121,19 +121,22 @@ s_post_reverting:   for (i : 0 .. num_connected) {
 
 proctype WCP()
 {
-                bool update_CM_sent = false;
+    bool update_CM_sent = false;
+    bool WCP_enabled = true;
 
-s_enabled:      do
-                ::  WCP_buffer??disable_WCP;
-                    goto s_disabled
-                ::  update_CM_sent == false;
-                    CM_buffer!update_CM, -1;
-                    update_CM_sent = true;
-                ::  true; // do nothing
-                od;
+    do
+    ::  WCP_buffer??enable_WCP;
+        WCP_enabled = true;
 
-s_disabled:     WCP_buffer??enable_WCP;
-                goto s_enabled
+    ::  WCP_buffer??disable_WCP;
+        WCP_enabled = false;
+
+    ::  WCP_enabled == true;
+        // TODO: add delay instead of using flag
+        update_CM_sent == false;
+        CM_buffer!update_CM, -1;
+        update_CM_sent = true;
+    od;
 }
 
 proctype WAC(byte id)
