@@ -138,9 +138,13 @@ proctype WCP()
 
     ::  WCP_enabled == true;
         // TODO: add delay instead of using flag
-        update_CM_sent == false;
-        CM_buffer!update_CM, -1;
-        update_CM_sent = true;
+        if 
+        ::  update_CM_sent == false;
+            CM_buffer!update_CM, -1;
+            update_CM_sent = true;
+        ::  else;
+            skip
+        fi;
     od;
 }
 
