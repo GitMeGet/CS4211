@@ -8,3 +8,13 @@ The key property of this system is to be able to propogate the latest weather up
 issue 1
 CM msg is sent to wrong WAC_id during this disruption
 - drop or buffer conn_req from disconnected WACs while another WAC is going through the Client Initialization (trying to connect to CM)?
+
+-- separate channels for conn_req vs handshaking during CI?
+
+issue 2
+
+
+
+
+
+
