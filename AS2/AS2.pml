@@ -151,17 +151,20 @@ proctype WCP()
 proctype WAC(byte id)
 {
                 mtype msg;
+                bool conn_req_ready = true;
                 bool connected = false;
 
 s_idle:         do 
-                ::  goto s_idle
-                ::  CM_buffer!conn_req, id
-                    if  // execution blocks if none of the guards are executable
-                    ::  WAC_buffer_in[id]??conn_succ 
-                        goto s_pre_init
-                    ::  WAC_buffer_in[id]??conn_fail
-                        goto s_idle
-                    fi;
+                ::  conn_req_ready == true;
+                    CM_buffer!conn_req, id;
+                    conn_req_ready = false;
+
+                ::  WAC_buffer_in[id]??conn_succ;
+                    goto s_pre_init
+
+                ::  WAC_buffer_in[id]??conn_fail;
+                    conn_req_ready = true;
+
                 ::  WAC_buffer_in[id]??wupdate;
                     goto s_pre_updating
                 od;
