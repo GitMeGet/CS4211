@@ -16,6 +16,7 @@ inline send_to_connected(msg) {
 
 inline disconn_all_WAC() {
     for (i : 0 .. num_connected-1) {
+        WAC_id = connected_WAC[i];
         WAC_buffer_in[WAC_id]!disconn;
         connected_WAC[i] = -1;
     }
@@ -29,6 +30,7 @@ proctype CM()
                 byte num_connected;
                 byte connected_WAC[num_WAC];
                 int i;
+                bool succ_flag;
 
                 mtype msg;
                 byte WAC_id;
@@ -77,51 +79,78 @@ s_pre_updating: send_to_connected(get_new_winfo);
                 goto s_updating
 
 s_updating:     // wait for all connected WAC to respond
-                for (i : 0 .. num_connected) {
+                succ_flag = true;                
+                for (i : 0 .. num_connected-1) {
                     WAC_id = connected_WAC[i];
-                    CM_buffer?msg, WAC_id;
+                    WAC_buffer_out[WAC_id]?msg
                     if 
                     ::  msg == get_new_winfo_fail;
-                        send_to_connected(use_old_winfo);
-                        goto s_post_reverting
+                        succ_flag = false;
+                    ::  else;
+                        skip;
                     fi;
                 }
-                // assume all succ since no one other msg should be sent
-                goto s_post_updating
 
-s_post_updating:    for (i : 0 .. num_connected) {
+                if 
+                ::  succ_flag == false;
+                    send_to_connected(use_old_winfo);
+                    goto s_post_reverting
+                ::  else;
+                    send_to_connected(use_new_winfo);
+                    goto s_post_updating
+                fi;
+
+s_post_updating:    succ_flag = true;
+                    for (i : 0 .. num_connected-1) {
                         WAC_id = connected_WAC[i];
-                        CM_buffer?msg, WAC_id;
+                        WAC_buffer_out[WAC_id]?msg
                         if 
                         ::  msg == use_new_winfo_fail;
-                            disconn_all_WAC();
-                            WCP_buffer!enable_WCP;
-                            goto s_idle;
+                            succ_flag = false;
+                            WAC_buffer_in[WAC_id]!disconn;
+                        ::  else;
+                            skip
                         fi;
                     }
-                    // assume all succ since no one other msg should be sent
-                    for (i : 0 .. num_connected) {
-                        WAC_id = connected_WAC[i];
-                    }
-                    WCP_buffer!enable_WCP;
-                    goto s_idle
+                    if 
+                    ::  succ_flag == false;
+                        num_connected = 0;
+                        WCP_buffer!enable_WCP;
+                        goto s_idle;
+                    ::  else;                    
+                        for (i : 0 .. num_connected-1) {
+                            WAC_id = connected_WAC[i];
+                            // set status
+                        }
+                        WCP_buffer!enable_WCP;
+                        goto s_idle
+                    fi;
 
-s_post_reverting:   for (i : 0 .. num_connected) {
+s_post_reverting:   succ_flag = true;
+                    for (i : 0 .. num_connected-1) {
                         WAC_id = connected_WAC[i];
-                        CM_buffer?msg, WAC_id;
+                        WAC_buffer_out[WAC_id]?msg;
                         if 
                         ::  msg == use_old_winfo_fail;
-                            disconn_all_WAC();
-                            WCP_buffer!enable_WCP;
-                            goto s_idle;
+                            succ_flag = false;
+                            WAC_buffer_in[WAC_id]!disconn;
+                        ::  else;
+                            skip;
                         fi;
                     }
-                    // assume all succ since no one other msg should be sent
-                    for (i : 0 .. num_connected) {
-                        WAC_id = connected_WAC[i];
-                    }
-                    WCP_buffer!enable_WCP;
-                    goto s_idle
+                    if
+                    ::  succ_flag == false;
+                        num_connected = 0;
+                        WCP_buffer!enable_WCP;
+                        goto s_idle;
+                    ::  else;
+                        for (i : 0 .. num_connected-1) {
+                            WAC_id = connected_WAC[i];
+                            // set status
+                        }
+                        WCP_buffer!enable_WCP;
+                        goto s_idle
+                    fi;
 }
 
 proctype WCP()
@@ -138,7 +167,7 @@ proctype WCP()
     ::  WCP_enabled == true;
         if
         ::  // check if buffer already contains the msg
-            CM_buffer?[update_CM, 255];
+            CM_buffer??[update_CM, 255] == false;
             CM_buffer!update_CM, 255;
         ::  else;
             skip;
@@ -189,28 +218,32 @@ s_post_init:    if
 
 s_pre_updating: WAC_buffer_in[id]??get_new_winfo;
                 if
-                ::  CM_buffer!get_new_winfo_succ, id;
-                    goto s_post_updating
-                ::  CM_buffer!get_new_winfo_fail, id;
+                ::  WAC_buffer_out[id]!get_new_winfo_succ;
+                    if
+                    ::  WAC_buffer_in[id]??use_new_winfo;
+                        goto s_post_updating
+                    ::  WAC_buffer_in[id]??use_old_winfo;
+                        goto s_post_reverting
+                    fi;     
+                ::  WAC_buffer_out[id]!get_new_winfo_fail;
+                    WAC_buffer_in[id]??use_old_winfo;
                     goto s_post_reverting
                 fi;
 
-s_post_updating:    WAC_buffer_in[id]??use_new_winfo;
-                    if
-                    ::  CM_buffer!use_new_winfo_succ, id;
+s_post_updating:    if
+                    ::  WAC_buffer_out[id]!use_new_winfo_succ;
                         goto s_idle
-                    ::  CM_buffer!use_new_winfo_fail, id;
+                    ::  WAC_buffer_out[id]!use_new_winfo_fail;
                         WAC_buffer_in[id]??disconn;
                         connected = false;
                         conn_req_ready = true;
                         goto s_idle
                     fi;
 
-s_post_reverting:   WAC_buffer_in[id]??use_old_winfo;
-                    if
-                    ::  CM_buffer!use_old_winfo_succ, id;
+s_post_reverting:   if
+                    ::  WAC_buffer_out[id]!use_old_winfo_succ;
                         goto s_idle
-                    ::  CM_buffer!use_old_winfo_fail, id;
+                    ::  WAC_buffer_out[id]!use_old_winfo_fail;
                         WAC_buffer_in[id]??disconn;
                         connected = false;
                         conn_req_ready = true;
