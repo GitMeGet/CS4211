@@ -18,8 +18,8 @@ inline disconn_all_WAC() {
     for (i : 0 .. num_connected-1) {
         WAC_buffer_in[WAC_id]!disconn;
         connected_WAC[i] = -1;
-        num_connected = 0;
     }
+    num_connected = 0;
 }
 
 // Initially, CM idle status, WCP enabled, all WACs disconnected
